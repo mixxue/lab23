@@ -1,63 +1,108 @@
-#include<iostream>
-#include<fstream>
-#include<vector>
-#include<string>
-#include<cstdlib>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <map>
+#include <algorithm>
 
 using namespace std;
 
-char score2grade(int score){
-    if(score >= 80) return 'A';
-    if(score >= 70) return 'B';
-    if(score >= 60) return 'C';
-    if(score >= 50) return 'D';
-    else return 'F';
+vector<string> names;
+vector<int> scores;
+vector<char> grades;
+
+char calculateGrade(int score) {
+    if (score >= 80) return 'A';
+    if (score >= 70) return 'B';
+    if (score >= 60) return 'C';
+    if (score >= 50) return 'D';
+    return 'F';
 }
 
-string toUpperStr(string x){
-    string y = x;
-    for(unsigned i = 0; i < x.size();i++) y[i] = toupper(x[i]);
-    return y;
+void importDataFromFile(string filename) {
+    ifstream file(filename);
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string name;
+        int score1, score2, score3;
+        getline(ss, name, ':');
+        ss >> score1 >> score2 >> score3;
+        
+        names.push_back(name);
+        int totalScore = score1 + score2 + score3;
+        scores.push_back(totalScore);
+        grades.push_back(calculateGrade(totalScore));
+    }
 }
 
-void importDataFromFile(){
-
+string toLowerCase(string str) {
+    transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
 }
 
-void getCommand(){
-
-}
-
-void searchName(){
-
-}
-
-void searchGrade(){
-
-}
-
-
-int main(){
-    string filename = "name_score.txt";
-    vector<string> names;
-    vector<int> scores;
-    vector<char> grades; 
-    importDataFromFile(filename, names, scores, grades);
-    
-    do{
-        string command, key;
-        getCommand(command,key);
-        command = toUpperStr(command);
-        key = toUpperStr(key);
-        if(command == "EXIT") break;
-        else if(command == "GRADE") searchGrade(names, scores, grades, key);
-        else if(command == "NAME") searchName(names, scores, grades, key);
-        else{
-            cout << "---------------------------------\n";
-            cout << "Invalid command.\n";
-            cout << "---------------------------------\n";
+void searchName(string key) {
+    key = toLowerCase(key);
+    bool found = false;
+    cout << "---------------------------------" << endl;
+    for (size_t i = 0; i < names.size(); i++) {
+        if (toLowerCase(names[i]) == key) {
+            cout << names[i] << "'s score = " << scores[i] << endl;
+            cout << names[i] << "'s grade = " << grades[i] << endl;
+            found = true;
+            break;
         }
-    }while(true);
-    
+    }
+    if (!found) {
+        cout << "Cannot found." << endl;
+    }
+    cout << "---------------------------------" << endl;
+}
+
+void searchGrade(char grade) {
+    grade = toupper(grade);
+    bool found = false;
+    cout << "---------------------------------" << endl;
+    for (size_t i = 0; i < grades.size(); i++) {
+        if (grades[i] == grade) {
+            cout << names[i] << " (" << scores[i] << ")" << endl;
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "Cannot found." << endl;
+    }
+    cout << "---------------------------------" << endl;
+}
+
+void getCommand() {
+    string command;
+    while (true) {
+        cout << "Please input your command:" << endl;
+        getline(cin, command);
+        stringstream ss(command);
+        string action, key;
+        ss >> action >> ws;
+        getline(ss, key);
+        
+        action = toLowerCase(action);
+        
+        if (action == "name") {
+            searchName(key);
+        } else if (action == "grade" && key.length() == 1) {
+            searchGrade(key[0]);
+        } else if (action == "exit") {
+            break;
+        } else {
+            cout << "---------------------------------" << endl;
+            cout << "Invalid command." << endl;
+            cout << "---------------------------------" << endl;
+        }
+    }
+}
+
+int main() {
+    importDataFromFile("name_score.txt");
+    getCommand();
     return 0;
 }
